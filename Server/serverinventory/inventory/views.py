@@ -1,11 +1,13 @@
 
 from rest_framework import generics,status
-from .models import Category,Product,Shop,Invoice,Brand,OrderItem
-from .serializers import CategorySerializer,ProductSerializer,ShopSerializer,BrandSerializer,InvoiceSerializer,CreateInvoiceSerializer,UpdateOrderItemSerializer
+from .models import Category,Product,Shop,Invoice,Brand,OrderItem,ProductStockHistory
+from .serializers import CategorySerializer,ProductSerializer,ShopSerializer,BrandSerializer,InvoiceSerializer,CreateInvoiceSerializer,UpdateOrderItemSerializer,ProductRestockSerializer,ProductStockHistorySerializer,DailyStockItemSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.generics import UpdateAPIView
+from rest_framework.generics import UpdateAPIView,ListAPIView
 from rest_framework.views import APIView
+from django.db.models import Sum, F
+from django.db.models.functions import TruncDate
 
 
 class CategoryListCreateView(generics.ListCreateAPIView):
@@ -38,6 +40,118 @@ class ProductRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
     lookup_field = 'id'
+    
+class ProductRestockView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request, id):
+        product = Product.objects.get(id=id)
+        serializer = ProductRestockSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        added_stock = serializer.validated_data['added_stock']
+        last_stock = product.stock
+        current_stock = last_stock + added_stock
+
+        # update product stock
+        product.stock = current_stock
+        product.save()
+
+        # save stock history
+        ProductStockHistory.objects.create(
+            product=product,
+            last_stock=last_stock,
+            added_stock=added_stock,
+            current_stock=current_stock,
+            tp_price=product.tp_price,
+            total_stock_price=added_stock * product.tp_price
+        )
+
+        return Response({
+            "message": "Stock updated successfully",
+            "product_name": product.product_name,
+            "last_stock": last_stock,
+            "added_stock": added_stock,
+            "current_stock": current_stock,
+            "tp_price": product.tp_price,
+            "total_stock_price": added_stock * product.tp_price
+        }, status=status.HTTP_200_OK)
+        
+class ProductStockHistoryListView(generics.ListAPIView):
+    queryset = ProductStockHistory.objects.select_related('product').all()
+    serializer_class = ProductStockHistorySerializer
+    permission_classes = [AllowAny]
+
+class DailyStockSummaryView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        daily_data = (
+            ProductStockHistory.objects
+            .annotate(date=TruncDate('created_at'))
+            .values('date')
+            .annotate(grand_total_price=Sum('total_stock_price'))
+            .order_by('-date')
+        )
+
+        return Response(daily_data)
+    
+class DailyStockDetailView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, date):
+        queryset = (
+            ProductStockHistory.objects
+            .filter(created_at__date=date)
+            .select_related('product')
+            .order_by('-created_at')
+        )
+
+        serializer = DailyStockItemSerializer(queryset, many=True)
+
+        grand_total = queryset.aggregate(
+            total=Sum('total_stock_price')
+        )['total'] or 0
+
+        return Response({
+            "date": date,
+            "items": serializer.data,
+            "grand_total_price": grand_total
+        })
+        
+class ProductStockSummaryView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        data = Product.objects.aggregate(
+            total_stock=Sum('stock'),
+            total_tp_price=Sum(F('stock') * F('tp_price'))
+        )
+
+        return Response({
+            "total_stock": data['total_stock'] or 0,
+            "total_tp_price": data['total_tp_price'] or 0
+        })
+
+class BrandWiseStockSummaryView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        data = (
+            Product.objects
+            .filter(brand__isnull=False)
+            .values(
+                'brand__id',
+                'brand__brand_name'
+            )
+            .annotate(
+                total_stock=Sum('stock'),
+                total_tp_price=Sum(F('stock') * F('tp_price'))
+            )
+            .order_by('brand__brand_name')
+        )
+
+        return Response(data)
     
 class ProductDestroyView(generics.DestroyAPIView):
     queryset = Product.objects.all()

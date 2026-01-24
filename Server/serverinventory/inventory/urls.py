@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import CategoryListCreateView,ProductListCreateView,CreateInvoiceView,InvoiceDetailView,ProductListView,MarkInvoiceDeliveredView,InvoiceListView,ShopInvoiceListView,BrandListCreateView,ShopListCreateView,ProductRetrieveUpdateView,UpdateOrderItemView,RemoveOrderItemView,ProductDestroyView,BrandRetrieveUpdateDestroyView,ShopRetrieveUpdateDestroyView,CategoryRetrieveUpdateDestroyView,DeliveredInvoiceDeleteView, DeliveredInvoiceListView
+from .views import CategoryListCreateView,ProductListCreateView,CreateInvoiceView,InvoiceDetailView,ProductListView,MarkInvoiceDeliveredView,InvoiceListView,ShopInvoiceListView,BrandListCreateView,ShopListCreateView,ProductRetrieveUpdateView,UpdateOrderItemView,RemoveOrderItemView,ProductDestroyView,BrandRetrieveUpdateDestroyView,ShopRetrieveUpdateDestroyView,CategoryRetrieveUpdateDestroyView,DeliveredInvoiceDeleteView, DeliveredInvoiceListView,ProductRestockView,ProductStockHistoryListView,DailyStockSummaryView,DailyStockDetailView,ProductStockSummaryView,BrandWiseStockSummaryView
 urlpatterns = [
   path('categories/', CategoryListCreateView.as_view(), name='add-category'), 
   path('categories/<int:id>/', CategoryRetrieveUpdateDestroyView.as_view(), name='update-delete-category'),
@@ -7,6 +7,12 @@ urlpatterns = [
   path('brand/<int:pk>/', BrandRetrieveUpdateDestroyView.as_view(), name='brand-detail'),
   path('product/', ProductListCreateView.as_view(), name='products'), 
   path("product/", ProductListView.as_view(), name="product-list"),
+  path('product/<int:id>/restock/', ProductRestockView.as_view()),
+  path('stock-history/', ProductStockHistoryListView.as_view()),
+  path('stock/daily-summary/', DailyStockSummaryView.as_view(), name='daily-stock-summary'),
+  path('products/summary/', ProductStockSummaryView.as_view()),
+  path('products/brand-summary/', BrandWiseStockSummaryView.as_view()),
+  path('stock/daily/<str:date>/', DailyStockDetailView.as_view(), name='daily-stock-detail'),
   path('product/<int:id>/', ProductRetrieveUpdateView.as_view(), name='product-update'),
   path('product/<int:id>/delete/', ProductDestroyView.as_view(), name='product-delete'),
   path("shops/", ShopListCreateView.as_view(), name="shop-list"),
@@ -17,8 +23,8 @@ urlpatterns = [
   path('invoices/', InvoiceListView.as_view(), name='invoice-list'),
   path('shops/<int:shop_id>/invoices/', ShopInvoiceListView.as_view(), name='shop-invoices'),
   path('order-items/<int:pk>/update/', UpdateOrderItemView.as_view(), name='update-order-item'),
-path("order-items/<int:id>/remove/", RemoveOrderItemView.as_view(), name="remove-item"),
-path('invoices/delivered/', DeliveredInvoiceListView.as_view(), name='delivered-invoices'),
-    path('invoices/delivered/<int:pk>/', DeliveredInvoiceDeleteView.as_view(), name='delete-delivered-invoice'),
+  path("order-items/<int:id>/remove/", RemoveOrderItemView.as_view(), name="remove-item"),
+  path('invoices/delivered/', DeliveredInvoiceListView.as_view(), name='delivered-invoices'),
+  path('invoices/delivered/<int:pk>/', DeliveredInvoiceDeleteView.as_view(), name='delete-delivered-invoice'),
   
 ]

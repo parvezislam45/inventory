@@ -18,6 +18,7 @@ export default function DashboardLayout({ children }) {
   };
 
   const links = [
+    { href: "/kazi/stock", label: "Total Stock", icon: <Package className="w-5 h-5" /> },
     { href: "/kazi/product", label: "Products", icon: <Package className="w-5 h-5" /> },
     { href: "/kazi/orders", label: "Orders", icon: <ShoppingBag className="w-5 h-5" /> },
   ];

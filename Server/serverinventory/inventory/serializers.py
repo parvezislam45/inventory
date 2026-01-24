@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category,Product,Shop,OrderItem,Invoice,Brand
+from .models import Category,Product,Shop,OrderItem,Invoice,Brand,ProductStockHistory
 from django.utils.text import slugify
 from django.db import transaction
 from decimal import Decimal
@@ -55,6 +55,50 @@ class ProductSerializer(serializers.ModelSerializer):
             'brand',          
             'brand_name',     
             'image'
+        ]
+        
+class ProductRestockSerializer(serializers.Serializer):
+    added_stock = serializers.IntegerField(min_value=1)
+
+    def validate_added_stock(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Added stock must be greater than 0")
+        return value
+    
+class ProductStockHistorySerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
+
+    class Meta:
+        model = ProductStockHistory
+        fields = [
+            'id',
+            'product_name',
+            'last_stock',
+            'added_stock',
+            'current_stock',
+            'tp_price',
+            'total_stock_price',
+            'created_at'
+        ]
+
+class DailyStockSummarySerializer(serializers.Serializer):
+    date = serializers.DateField()
+    grand_total_price = serializers.IntegerField()
+    
+class DailyStockItemSerializer(serializers.ModelSerializer):
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
+
+    class Meta:
+        model = ProductStockHistory
+        fields = [
+            'id',
+            'product_name',
+            'last_stock',
+            'added_stock',
+            'current_stock',
+            'tp_price',
+            'total_stock_price',
+            'created_at'
         ]
 
 class ShopSerializer(serializers.ModelSerializer):

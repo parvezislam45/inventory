@@ -44,6 +44,11 @@ export default function DashboardLayout({ children }) {
       icon: <Package className="w-5 h-5" />,
     },
     {
+      href: "/harvest/stock",
+      label: "Total Stock",
+      icon: <Package className="w-5 h-5" />,
+    },
+    {
       href: "/harvest/orders",
       label: "Orders",
       icon: <ShoppingBag className="w-5 h-5" />,

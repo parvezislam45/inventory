@@ -229,8 +229,8 @@ const DeleteConfirmationModal = ({
   );
 };
 
-// Invoice Card Component
-const InvoiceCard = ({
+// Table Row Component
+const InvoiceTableRow = ({
   invoice,
   onUpdateItem,
   onDeleteItem,
@@ -240,13 +240,10 @@ const InvoiceCard = ({
   deleting,
   deletingInvoice,
 }) => {
-  const [expanded, setExpanded] = useState(false);
-
-  // Calculate values from current items to ensure they're always accurate
+  // Calculate values from current items
   const totalItems = invoice.items.reduce((sum, item) => sum + item.quantity, 0);
   const uniqueProducts = invoice.items.length;
   
-  // Calculate pricing from current items to ensure consistency
   const calculatedSubtotal = invoice.items.reduce((sum, item) => {
     return sum + (Number(item.product.tp_price) * item.quantity);
   }, 0);
@@ -333,210 +330,89 @@ const InvoiceCard = ({
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
-      {/* Invoice Header */}
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-          <div className="flex items-start gap-4 flex-1">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                <h3 className="text-lg font-bold text-gray-900 truncate">
-                  {invoice.invoice_number}
-                </h3>
-                <div className="flex items-center gap-2">
-                  {getBrandBadge(invoice.items)}
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    invoice.is_delivered
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}>
-                    {invoice.is_delivered ? "Delivered" : "Pending"}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-gray-600">
-                <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <span className="font-medium">{invoice.shop.shop_name}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span>{formatDisplayDate(invoice.created_at)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                  {/* FIXED: This will now update correctly after deletion */}
-                  <span>{totalItems} items ({uniqueProducts} products)</span>
-                </div>
-              </div>
-            </div>
+    <tr className="border-b border-gray-200 hover:bg-gray-50/50 transition-colors duration-150">
+      {/* Invoice Number */}
+      <td className="py-4 px-4">
+        <div >
+            <div className="text-sm font-medium text-gray-900">{formatDisplayDate(invoice.created_at)}</div>
           </div>
+      </td>
+      <td className="py-4 px-4">
+        <div >
+          <div className="text-sm font-medium text-gray-900">{invoice.invoice_number}</div>
+          </div>
+      </td>
 
-          <div className="flex flex-col items-end gap-3">
-            <div className="text-right">
-              {/* FIXED: Use calculated values to ensure they're always accurate */}
-              <div className="text-2xl font-bold text-green-600">
-                ৳{formatCurrency(calculatedFinalTotal)}
-              </div>
-              <div className="text-sm text-gray-500 line-through">
-                ৳{formatCurrency(calculatedSubtotal)}
-              </div>
-              <div className="text-xs text-red-600">
-                -৳{formatCurrency(calculatedDiscountAmount)} ({calculatedDiscountPercent}% off)
-              </div>
-            </div>
-            
-            <div className="flex gap-2">
-              <button
-                onClick={() => setExpanded(!expanded)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
-              >
-                {expanded ? "Hide Items" : "Show Items"}
-              </button>
-              <button
-                onClick={() => onViewInvoice(invoice)}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-xl hover:bg-blue-700 transition-colors"
-              >
-                View Details
-              </button>
-              <button
-                onClick={() => onDeleteInvoice(invoice.id)}
-                disabled={deletingInvoice === invoice.id}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 disabled:bg-red-400 transition-colors flex items-center gap-2"
-              >
-                {deletingInvoice === invoice.id ? (
-                  <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v4m0 12v4m8-10h-4M6 12H2" />
-                    </svg>
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                    Delete
-                  </>
-                )}
-              </button>
-            </div>
+
+      {/* Shop */}
+      <td className="py-4 px-4">
+        <div className="text-sm text-gray-900">{invoice.shop.shop_name}</div>
+      </td>
+      <td className="py-4 px-4">
+        <div className="text-sm text-gray-600">{getBrandBadge(invoice.items)}</div>
+      </td>
+
+      {/* Status */}
+      <td className="py-4 px-4">
+        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+          invoice.is_delivered
+            ? "bg-green-100 text-green-800"
+            : "bg-yellow-100 text-yellow-800"
+        }`}>
+          {invoice.is_delivered ? (
+            <>
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Delivered
+            </>
+          ) : (
+            <>
+              <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+              Pending
+            </>
+          )}
+        </span>
+      </td>
+
+      {/* Amount */}
+      <td className="py-4 px-4">
+        <div className="text-right">
+          <div className="font-bold text-lg text-green-600">
+            ৳{formatCurrency(calculatedFinalTotal)}
           </div>
         </div>
-      </div>
+      </td>
 
-      {/* Expandable Items Section */}
-      {expanded && (
-        <div className="border-t border-gray-200 bg-gray-50/50">
-          <div className="p-6">
-            <h4 className="text-sm font-semibold text-gray-900 mb-4 uppercase tracking-wide">
-              Order Items ({invoice.items.length})
-            </h4>
-            
-            {invoice.items.length === 0 ? (
-              <div className="text-center py-8 bg-white rounded-xl border border-gray-200">
-                <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                </svg>
-                <p className="text-gray-600">No items in this invoice</p>
-              </div>
+      {/* Actions */}
+      <td className="py-4 px-4">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => onViewInvoice(invoice)}
+            className="px-3 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-1"
+            title="View Details"
+          >
+            View
+          </button>
+          
+          <button
+            onClick={() => onDeleteInvoice(invoice.id)}
+            disabled={deletingInvoice === invoice.id}
+            className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-red-400 transition-colors flex items-center gap-1"
+            title="Delete Invoice"
+          >
+            {deletingInvoice === invoice.id ? (
+              <>
+                Deleting
+              </>
             ) : (
-              <div className="grid gap-3">
-                {invoice.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-4 p-4 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors group"
-                  >
-                    <img
-                      src={item.product.image}
-                      alt={item.product.product_name}
-                      className="w-16 h-16 object-cover rounded-lg border border-gray-200 flex-shrink-0"
-                      onError={(e) => {
-                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjQwIiBoZWlnaHQ9IjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0yMCAyMkMyMi4yMDkxIDIyIDI0IDIwLjIwOTEgMjQgMThDMjQgMTUuNzkwOSAyMi4yMDkxIDE0IDIwIDE0QzE3Ljc5MDkgMTQgMTYgMTUuNzkwOSAxNiAxOEMxNiAyMC4yMDkxIDE3Ljc5MDkgMjIgMjAgMjJaTTIwIDI0QzE2LjEzIDI0IDEyIDI1Ljc5IDEyIDMwSDI4QzI4IDI1Ljc5IDIzLjg3IDI0IDIwIDI0WiIgZmlsbD0iIzlDQTBBQiIvPgo8L3N2Zz4=';
-                      }}
-                    />
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-                        <div className="flex-1">
-                          <h5 className="font-semibold text-gray-900 truncate">
-                            {item.product.product_name}
-                          </h5>
-                          <p className="text-sm text-gray-600 mb-1">
-                            {item.product.brand_name} • {item.product.category_name}
-                          </p>
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            <span className="text-green-600 font-semibold">
-                              TP: ৳{Number(item.product.tp_price).toFixed(2)}
-                            </span>
-                            <span className="line-through">
-                              MRP: ৳{Number(item.product.mrp_price).toFixed(2)}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <div className="text-lg font-bold text-gray-900">
-                              ৳{formatCurrency(item.final_price)}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              Qty: {item.quantity}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => onUpdateItem(item)}
-                        disabled={updating}
-                        className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Update quantity"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => onDeleteItem(item.id)}
-                        disabled={deleting === item.id}
-                        className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Remove item"
-                      >
-                        {deleting === item.id ? (
-                          <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2v4m0 12v4m8-10h-4M6 12H2" />
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <>
+                
+                Delete
+              </>
             )}
-          </div>
+          </button>
         </div>
-      )}
-    </div>
+      </td>
+    </tr>
   );
 };
 
@@ -711,22 +587,6 @@ export default function OrdersPage() {
     setUpdateModalOpen(true);
   };
 
-  // ✅ Get dominant brand from invoice items
-  const getDominantBrand = (items) => {
-    if (items.length === 0) return 'Unknown';
-    
-    const brandCounts = {};
-    
-    items.forEach(item => {
-      const brand = item.product.brand_name;
-      brandCounts[brand] = (brandCounts[brand] || 0) + 1;
-    });
-    
-    return Object.keys(brandCounts).reduce((a, b) => 
-      brandCounts[a] > brandCounts[b] ? a : b
-    );
-  };
-
   // ✅ Navigate to brand-specific invoice page
   const handleViewInvoice = (invoice) => {
     router.push(`/admin/invoices/${invoice.id}`);
@@ -782,9 +642,10 @@ export default function OrdersPage() {
                 <div key={i} className="h-20 bg-gray-200 rounded-lg"></div>
               ))}
             </div>
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="h-48 bg-gray-200 rounded-xl"></div>
+            <div className="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
+              <div className="h-12 bg-gray-200"></div>
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="h-16 border-b border-gray-200"></div>
               ))}
             </div>
           </div>
@@ -956,68 +817,85 @@ export default function OrdersPage() {
           )}
         </div>
 
-        {/* Invoices List */}
-        <div className="space-y-6">
-          {filteredInvoices.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-gray-200">
-              <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {invoices.length === 0 ? "No invoices found" : "No invoices match your filters"}
-              </h3>
-              <p className="text-gray-600 mb-6 max-w-sm mx-auto">
-                {invoices.length === 0 
-                  ? "Get started by creating your first invoice." 
-                  : "Try adjusting your search criteria or clear the filters."}
-              </p>
-              {invoices.length > 0 && (
-                <button
-                  onClick={clearFilters}
-                  className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-200 shadow-sm"
-                >
-                  Clear filters to see all {invoices.length} invoices
-                </button>
-              )}
-            </div>
-          ) : (
-            filteredInvoices.map((invoice) => (
-              <InvoiceCard
-                key={invoice.id}
-                invoice={invoice}
-                onUpdateItem={openUpdateModal}
-                onDeleteItem={handleDeleteItem}
-                onDeleteInvoice={openDeleteModal}
-                onViewInvoice={handleViewInvoice}
-                updating={updating}
-                deleting={deleting}
-                deletingInvoice={deletingInvoice}
-              />
-            ))
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-            <p className="text-gray-600">
-              {filteredInvoices.length > 0 ? (
-                <>
-                  Showing <span className="font-semibold text-gray-900">{filteredInvoices.length}</span> of{" "}
-                  <span className="font-semibold text-gray-900">{invoices.length}</span> invoices
-                  {searchDate && ` for ${new Date(searchDate).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                  })}`}
-                </>
-              ) : (
-                "No invoices to display"
-              )}
-            </p>
+        {/* Invoices Table */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full table-fixed">
+              <thead className="bg-gray-50">
+                <tr className="text-left text-sm font-semibold text-gray-700">
+                  <th className="py-4 px-4 w-48">Date</th>
+                  <th className="py-4 px-4 w-50">Invoice No</th>
+                  <th className="py-4 px-4 w-44">Shop</th>
+                  <th className="py-4 px-4 w-32">Brand</th>
+                  <th className="py-4 px-4 w-28">Status</th>
+                  <th className="py-4 px-4 32">Amount</th>
+                  <th className="py-4 px-4 w-40">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {filteredInvoices.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="py-12 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          {invoices.length === 0 ? "No invoices found" : "No invoices match your filters"}
+                        </h3>
+                        <p className="text-gray-600 mb-4 max-w-sm">
+                          {invoices.length === 0 
+                            ? "Get started by creating your first invoice." 
+                            : "Try adjusting your search criteria or clear the filters."}
+                        </p>
+                        {invoices.length > 0 && (
+                          <button
+                            onClick={clearFilters}
+                            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
+                          >
+                            Clear filters to see all {invoices.length} invoices
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredInvoices.map((invoice) => (
+                    <InvoiceTableRow
+                      key={invoice.id}
+                      invoice={invoice}
+                      onUpdateItem={openUpdateModal}
+                      onDeleteItem={handleDeleteItem}
+                      onDeleteInvoice={openDeleteModal}
+                      onViewInvoice={handleViewInvoice}
+                      updating={updating}
+                      deleting={deleting}
+                      deletingInvoice={deletingInvoice}
+                    />
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
+
+          {/* Table Footer */}
+          {filteredInvoices.length > 0 && (
+            <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-600">
+                  Showing <span className="font-semibold">{filteredInvoices.length}</span> of{" "}
+                  <span className="font-semibold">{invoices.length}</span> invoices
+                </div>
+                <div className="text-sm text-gray-600">
+                  Total: <span className="font-semibold text-green-600">
+                    ৳{filteredInvoices.reduce((sum, inv) => sum + parseFloat(inv.final_total || 0), 0).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

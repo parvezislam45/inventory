@@ -50,6 +50,12 @@ export default function DashboardLayout({ children }) {
 
   const links = [
     { 
+      href: "/admin/stock", 
+      label: "Total Stock", 
+      icon: <Plus className="w-5 h-5" />,
+      category: "Products"
+    },
+    { 
       href: "/admin/add", 
       label: "Add Product", 
       icon: <Plus className="w-5 h-5" />,
@@ -94,6 +100,12 @@ export default function DashboardLayout({ children }) {
     { 
       href: "/admin/user", 
       label: "Users", 
+      icon: <Users className="w-5 h-5" />,
+      category: "Management"
+    },
+    { 
+      href: "/admin/chalan", 
+      label: "Chalan", 
       icon: <Users className="w-5 h-5" />,
       category: "Management"
     },
