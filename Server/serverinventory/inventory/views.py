@@ -8,6 +8,7 @@ from rest_framework.generics import UpdateAPIView,ListAPIView
 from rest_framework.views import APIView
 from django.db.models import Sum, F
 from django.db.models.functions import TruncDate
+from datetime import datetime
 
 
 class CategoryListCreateView(generics.ListCreateAPIView):
@@ -60,16 +61,18 @@ class ProductRestockView(APIView):
         # save stock history
         ProductStockHistory.objects.create(
             product=product,
+            brand=product.brand, # <-- add this line
             last_stock=last_stock,
             added_stock=added_stock,
             current_stock=current_stock,
             tp_price=product.tp_price,
             total_stock_price=added_stock * product.tp_price
-        )
+            )
 
         return Response({
             "message": "Stock updated successfully",
             "product_name": product.product_name,
+            "brand_name": product.brand.brand_name if product.brand else None,
             "last_stock": last_stock,
             "added_stock": added_stock,
             "current_stock": current_stock,
@@ -96,29 +99,34 @@ class DailyStockSummaryView(APIView):
 
         return Response(daily_data)
     
+
 class DailyStockDetailView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, date):
-        queryset = (
-            ProductStockHistory.objects
-            .filter(created_at__date=date)
-            .select_related('product')
-            .order_by('-created_at')
+        """
+        date format: YYYY-MM-DD
+        """
+        try:
+            parsed_date = datetime.strptime(date, "%Y-%m-%d").date()
+        except ValueError:
+            return Response({"error": "Invalid date format"}, status=400)
+
+        queryset = ProductStockHistory.objects.filter(
+            created_at__date=parsed_date
+        ).select_related("product", "brand")
+
+        serializer = ProductStockHistorySerializer(queryset, many=True)
+
+        grand_total_price = sum(
+            item.total_stock_price for item in queryset
         )
-
-        serializer = DailyStockItemSerializer(queryset, many=True)
-
-        grand_total = queryset.aggregate(
-            total=Sum('total_stock_price')
-        )['total'] or 0
 
         return Response({
             "date": date,
-            "items": serializer.data,
-            "grand_total_price": grand_total
-        })
-        
+            "items": serializer.data,          # ✅ DATE-WISE ITEMS
+            "grand_total_price": grand_total_price
+        }, status=200)
 class ProductStockSummaryView(APIView):
     permission_classes = [AllowAny]
 

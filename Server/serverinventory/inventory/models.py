@@ -32,14 +32,12 @@ class Product(models.Model):
     
 class ProductStockHistory(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_history')
-    
+    brand = models.ForeignKey(Brand, on_delete=models.SET_NULL, null=True, blank=True)
     last_stock = models.IntegerField()
     added_stock = models.IntegerField()
     current_stock = models.IntegerField()
-    
     tp_price = models.IntegerField()
     total_stock_price = models.IntegerField()
-    
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

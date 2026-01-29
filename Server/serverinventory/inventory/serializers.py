@@ -66,19 +66,14 @@ class ProductRestockSerializer(serializers.Serializer):
         return value
     
 class ProductStockHistorySerializer(serializers.ModelSerializer):
+    brand_name = serializers.CharField(source='brand.brand_name', read_only=True)
     product_name = serializers.CharField(source='product.product_name', read_only=True)
-
     class Meta:
         model = ProductStockHistory
         fields = [
-            'id',
-            'product_name',
-            'last_stock',
-            'added_stock',
-            'current_stock',
-            'tp_price',
-            'total_stock_price',
-            'created_at'
+        'id', 'product', 'product_name', 'brand', 'brand_name',
+        'last_stock', 'added_stock', 'current_stock',
+        'tp_price', 'total_stock_price', 'created_at'
         ]
 
 class DailyStockSummarySerializer(serializers.Serializer):
@@ -87,11 +82,13 @@ class DailyStockSummarySerializer(serializers.Serializer):
     
 class DailyStockItemSerializer(serializers.ModelSerializer):
     product_name = serializers.CharField(source='product.product_name', read_only=True)
+    brand_name = serializers.CharField(source='brand.brand_name', read_only=True)
 
     class Meta:
         model = ProductStockHistory
         fields = [
             'id',
+            'brand_name',
             'product_name',
             'last_stock',
             'added_stock',
@@ -100,7 +97,6 @@ class DailyStockItemSerializer(serializers.ModelSerializer):
             'total_stock_price',
             'created_at'
         ]
-
 class ShopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shop

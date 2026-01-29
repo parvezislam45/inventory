@@ -12,7 +12,7 @@ urlpatterns = [
   path('stock/daily-summary/', DailyStockSummaryView.as_view(), name='daily-stock-summary'),
   path('products/summary/', ProductStockSummaryView.as_view()),
   path('products/brand-summary/', BrandWiseStockSummaryView.as_view()),
-  path('stock/daily/<str:date>/', DailyStockDetailView.as_view(), name='daily-stock-detail'),
+  path('stock/daily/<str:date>/', DailyStockDetailView.as_view(), name='daily-stock-detail'),  
   path('product/<int:id>/', ProductRetrieveUpdateView.as_view(), name='product-update'),
   path('product/<int:id>/delete/', ProductDestroyView.as_view(), name='product-delete'),
   path("shops/", ShopListCreateView.as_view(), name="shop-list"),
