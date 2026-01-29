@@ -1,41 +1,31 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
-
 export default function InvoicePage() {
-  const params = useParams();
-  const id = params?.id;
+  const { id } = useParams();
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const invoiceRef = useRef(null);
 
   useEffect(() => {
     if (!id) return;
-    
+
     const fetchInvoice = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch(`http://127.0.0.1:8000/invoices/${id}/`);
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch invoice: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Fetched invoice data:', data);
-        console.log('Shop data:', data.shop);
-        
-        // Filter only Kazi products
-        data.items = data.items.filter(item => item.product.brand_name === "Kazi");
-        
+        const res = await fetch(`http://127.0.0.1:8000/invoices/${id}/`);
+        if (!res.ok) throw new Error("Failed to fetch invoice");
+        const data = await res.json();
+
+        // Only Kazi items
+        data.items = data.items.filter(
+          i => i.product.brand_name === "Kazi"
+        );
+
         setInvoice(data);
       } catch (err) {
-        console.error('Error fetching invoice:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load invoice');
+        setError(err.message);
       } finally {
         setLoading(false);
       }
@@ -44,732 +34,210 @@ export default function InvoicePage() {
     fetchInvoice();
   }, [id]);
 
-  // Calculate proper totals from items
-  const calculateTotals = (items, discountPercent) => {
-    // Calculate subtotal from TP price * quantity
-    const subtotal = items.reduce((acc, item) => {
-      const tpPrice = parseFloat(item.product.tp_price) || 0;
-      return acc + (tpPrice * item.quantity);
-    }, 0);
+  if (loading) return <div className="p-10">Loading...</div>;
+  if (error) return <div className="p-10 text-red-600">{error}</div>;
+  if (!invoice) return null;
 
-    // Calculate discount amount
-    const discountAmount = subtotal * (discountPercent / 100);
-    
-    // Calculate final total
-    const finalTotal = subtotal - discountAmount;
+  const items = invoice.items;
+  const date = new Date(invoice.created_at).toLocaleDateString();
 
-    return {
-      subtotal: subtotal.toFixed(2),
-      discountAmount: discountAmount.toFixed(2),
-      finalTotal: finalTotal.toFixed(2)
-    };
-  };
+  // Calculate total amount for amount in words
+  const totalAmount = items.reduce((sum, item) => {
+    const tp = Number(item.product.tp_price) || 0;
+    return sum + (tp * item.quantity);
+  }, 0);
 
-  const handlePrint = () => {
-    const printContent = invoiceRef.current;
-    if (!printContent || !invoice) return;
+  // Function to convert number to words (you might want to use a library for production)
+  const amountInWords = (num) => {
+    // This is a simple implementation - you might want to use a proper library
+    const simpleNumbers = [
+      '', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine',
+      'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen',
+      'Seventeen', 'Eighteen', 'Nineteen'
+    ];
+    const tens = [
+      '', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'
+    ];
 
-    const printWindow = window.open("", "_blank");
-    if (!printWindow) return;
+    if (num === 0) return 'Zero';
 
-    // Determine discount percent from shop
-    let discountPercent = 0;
-    if (invoice.discount_type === "discount_kazi") {
-      discountPercent = Number(invoice.shop?.discount_kazi || 0);
-    } else if (invoice.discount_type === "discount_harvest") {
-      discountPercent = Number(invoice.shop?.discount_harvest || 0);
+    const thousands = Math.floor(num / 1000);
+    const hundreds = Math.floor((num % 1000) / 100);
+    const remainder = num % 100;
+
+    let words = '';
+
+    if (thousands > 0) {
+      words += simpleNumbers[thousands] + ' Thousand ';
     }
 
-    // Calculate totals
-    const totals = calculateTotals(invoice.items, discountPercent);
-
-    const printStyles = `
-      <style>
-        @media print {
-          @page {
-            size: A4 landscape;
-            margin: 0.5cm;
-          }
-          
-          body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            color: black;
-            background: white;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          
-          .print-container {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-          }
-          
-          .invoice-copy {
-            width: 48%;
-            background: white;
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 4px;
-            box-sizing: border-box;
-            page-break-inside: avoid;
-          }
-          
-          .invoice-header {
-            text-align: center;
-            margin-bottom: 10px;
-          }
-          
-          .invoice-header h1 {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 3px;
-            color: black;
-          }
-          
-          .invoice-header p {
-            font-weight: bold;
-            color: black;
-            margin: 1px 0;
-            font-size: 11px;
-          }
-          
-          .invoice-title {
-            display: inline-block;
-          border: 1.5px solid #000;
-          border-radius: 3px;
-          padding: 2px 10px;
-          font-weight: bold;
-          font-size: 12px;
-          background-color: #fff
-            margin-top: 16px;
-          }
-          
-          .invoice-details {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 10px;
-            font-size: 10px;
-          }
-          
-          .shop-info p {
-            margin: 1px 0;
-          }
-          
-          .copy-label {
-            border: 1px solid black;
-            padding: 4px 8px;
-            font-weight: bold;
-            font-size: 10px;
-            background: #f0f0f0;
-          }
-          
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 10px;
-            font-size: 9px;
-          }
-          
-          table, th, td {
-            border: 1px solid black;
-          }
-          
-          th {
-            
-            color: black;
-            padding: 4px 2px;
-            font-weight: bold;
-            text-align: center;
-          }
-          
-          td {
-            padding: 3px;
-            text-align: center;
-            font-weight: bold;
-          }
-          
-          .totals-table {
-            border: none;
-            width: 100%;
-            margin-top: 10px;
-          }
-          
-          .totals-table td {
-            border: none;
-            padding: 3px 6px;
-            text-align: left;
-          }
-          
-          .totals-table tr:last-child {
-            border-top: 1px solid black;
-          }
-          
-          .totals-table tr:last-child td {
-            padding-top: 6px;
-            font-weight: bold;
-          }
-          
-          .invoice-footer {
-            margin-top: 15px;
-            display: flex;
-            justify-content: space-between;
-          }
-          
-          .footer-section {
-            text-align: center;
-          }
-          
-          .footer-section p {
-            font-weight: bold;
-            margin: 0;
-            font-size: 10px;
-          }
-          
-          .footer-line {
-            border-top: 1px solid black;
-            width: 70px;
-            margin: 3px auto 0;
-          }
-        }
-        
-        @media screen {
-          body {
-            font-family: Arial, sans-serif;
-            background: #f3f4f6;
-            padding: 20px;
-          }
-          
-          .print-container {
-            max-width: 29.7cm;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-          }
-          
-          .invoice-copy {
-            width: 48%;
-            background: white;
-            padding: 15px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            box-sizing: border-box;
-          }
-          
-          .invoice-header {
-            text-align: center;
-            margin-bottom: 15px;
-          }
-          
-          .invoice-header h1 {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 4px;
-            color: black;
-          }
-          
-          .invoice-header p {
-            font-weight: bold;
-            color: black;
-            margin: 2px 0;
-            font-size: 12px;
-          }
-          
-          .invoice-title {
-            display: inline-block;
-          border: 1.5px solid #000;
-          border-radius: 3px;
-          padding: 2px 10px;
-          font-weight: bold;
-          font-size: 12px;
-          background-color: #fff
-            margin-top: 8px;
-          }
-          
-          .invoice-details {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            font-size: 11px;
-          }
-          
-          .shop-info p {
-            margin: 2px 0;
-          }
-          
-          .copy-label {
-            border: 1px solid black;
-            padding: 6px 10px;
-            font-weight: bold;
-            font-size: 11px;
-            background: #f0f0f0;
-          }
-          
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 15px;
-            font-size: 10px;
-          }
-          
-          table, th, td {
-            border: 1px solid black;
-          }
-          
-          th {
-            background: #d97706;
-            color: white;
-            padding: 6px 4px;
-            font-weight: bold;
-            text-align: center;
-          }
-          
-          td {
-            padding: 4px;
-            text-align: center;
-            font-weight: bold;
-          }
-          
-          .totals-table {
-            border: none;
-            width: 100%;
-            margin-top: 15px;
-          }
-          
-          .totals-table td {
-            border: none;
-            padding: 4px 8px;
-            text-align: left;
-          }
-          
-          .totals-table tr:last-child {
-            border-top: 1px solid black;
-          }
-          
-          .totals-table tr:last-child td {
-            padding-top: 8px;
-            font-weight: bold;
-          }
-          
-          .invoice-footer {
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-          }
-          
-          .footer-section {
-            text-align: center;
-          }
-          
-          .footer-section p {
-            font-weight: bold;
-            margin: 0;
-            font-size: 11px;
-          }
-          
-          .footer-line {
-            border-top: 1px solid black;
-            width: 80px;
-            margin: 4px auto 0;
-          }
-        }
-      </style>
-    `;
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Invoice ${invoice.invoice_number}</title>
-          ${printStyles}
-        </head>
-        <body>
-          <div class="print-container">
-            <div class="invoice-copy">
-              <div class="invoice-header">
-                <h1>Kazi Farms Kitchen Limited</h1>
-                <p>Address: Shimanto Shambhar Lavel-5, Dhanmondi,Dhaka-1205 (Frozen Food)</p>
-                <div class="invoice-title">Invoice Details</div>
-              </div>
-
-              <div class="invoice-details">
-                <div class="shop-info">
-                  <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                  <p><strong>Partner Name:</strong> ${invoice.shop?.shop_name}</p>
-                  <p><strong>Partner Location:</strong> ${invoice.shop?.address}</p>
-                  <p><strong>Phone:</strong> ${invoice.shop?.phone || 'N/A'}</p>
-                </div>
-                <div class="copy-label">CUSTOMER COPY</div>
-              </div>
-
-              <table>
-                <thead>
-                  <tr>
-                    <th>P-Code</th>
-                    <th>Name of Product</th>
-                    <th>MRP</th>
-                    <th>TP</th>
-                    <th>Quantity</th>
-                    <th>Total Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${invoice.items.map(item => {
-                    const tpPrice = parseFloat(item.product.tp_price) || 0;
-                    const itemTotal = tpPrice * item.quantity;
-                    return `
-                      <tr>
-                        <td>${item.product.id}</td>
-                        <td>${item.product.product_name}</td>
-                        <td>${item.product.mrp_price}</td>
-                        <td>${item.product.tp_price}</td>
-                        <td>${item.quantity}</td>
-                        <td>${itemTotal.toFixed(2)}</td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-              </table>
-
-              <table class="totals-table">
-                <tbody>
-                  <tr>
-                    <td style="width: 60%;"><strong>Total Distributor Price</strong></td>
-                    <td style="width: 40%; text-align: right;">${totals.subtotal}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Trade Discount %</strong></td>
-                    <td style="text-align: right;">${discountPercent}%</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Discount Amount</strong></td>
-                    <td style="text-align: right;">- ${totals.discountAmount}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Total Amount</strong></td>
-                    <td style="text-align: right; font-weight: bold;">${totals.finalTotal}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <div class="invoice-footer">
-                <div class="footer-section">
-                  <p>Received By</p>
-                  <div class="footer-line"></div>
-                </div>
-                <div class="footer-section">
-                  <p>Authorized By</p>
-                  <div class="footer-line"></div>
-                </div>
-              </div>
-            </div>
-
-            <div class="invoice-copy">
-              <div class="invoice-header">
-                <h1>Kazi Farms Kitchen Limited</h1>
-                <p>Address: Shimanto Shambhar Lavel-5, Dhanmondi,Dhaka-1205 (Frozen Food)</p>
-                <div class="invoice-title">Invoice Details</div>
-              </div>
-
-              <div class="invoice-details">
-                <div class="shop-info">
-                  <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-                  <p><strong>Partner Name:</strong> ${invoice.shop?.shop_name}</p>
-                  <p><strong>Partner Location:</strong> ${invoice.shop?.address}</p>
-                  <p><strong>Phone:</strong> ${invoice.shop?.phone || 'N/A'}</p>
-                </div>
-                <div class="copy-label">DISTRIBUTOR COPY</div>
-              </div>
-
-              <table>
-                <thead>
-                  <tr>
-                    <th>P-Code</th>
-                    <th>Name of Product</th>
-                    <th>MRP</th>
-                    <th>TP</th>
-                    <th>Quantity</th>
-                    <th>Total Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${invoice.items.map(item => {
-                    const tpPrice = parseFloat(item.product.tp_price) || 0;
-                    const itemTotal = tpPrice * item.quantity;
-                    return `
-                      <tr>
-                        <td>${item.product.id}</td>
-                        <td>${item.product.product_name}</td>
-                        <td>${item.product.mrp_price}</td>
-                        <td>${item.product.tp_price}</td>
-                        <td>${item.quantity}</td>
-                        <td>${itemTotal.toFixed(2)}</td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-              </table>
-
-              <table class="totals-table">
-                <tbody>
-                  <tr>
-                    <td style="width: 60%;"><strong>Total Distributor Price</strong></td>
-                    <td style="width: 40%; text-align: right;">${totals.subtotal}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Trade Discount %</strong></td>
-                    <td style="text-align: right;">${discountPercent}%</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Discount Amount</strong></td>
-                    <td style="text-align: right;">- ${totals.discountAmount}</td>
-                  </tr>
-                  <tr>
-                    <td><strong>Total Amount</strong></td>
-                    <td style="text-align: right; font-weight: bold;">${totals.finalTotal}</td>
-                  </tr>
-                </tbody>
-              </table>
-
-              <div class="invoice-footer">
-                <div class="footer-section">
-                  <p>Received By</p>
-                  <div class="footer-line"></div>
-                </div>
-                <div class="footer-section">
-                  <p>Authorized By</p>
-                  <div class="footer-line"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <script>
-            window.onload = function() {
-              window.print();
-              setTimeout(() => { window.close(); }, 100);
-            }
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-  };
-
-  const downloadPDF = () => {
-    handlePrint();
-  };
-
-  // Invoice copy component for preview
-  const InvoiceCopy = ({ copyType, brandName }) => {
-    if (!invoice) return null;
-
-    const items = invoice.items;
-
-    // Determine discount percent from shop
-    let discountPercent = 0;
-    if (invoice.discount_type === "discount_kazi") {
-      discountPercent = Number(invoice.shop?.discount_kazi || 0);
-    } else if (invoice.discount_type === "discount_harvest") {
-      discountPercent = Number(invoice.shop?.discount_harvest || 0);
+    if (hundreds > 0) {
+      words += simpleNumbers[hundreds] + ' Hundred ';
     }
 
-    // Calculate totals using the new function
-    const totals = calculateTotals(items, discountPercent);
+    if (remainder > 0) {
+      if (remainder < 20) {
+        words += simpleNumbers[remainder];
+      } else {
+        words += tens[Math.floor(remainder / 10)];
+        if (remainder % 10 > 0) {
+          words += ' ' + simpleNumbers[remainder % 10];
+        }
+      }
+    }
 
-    return (
-      <div className="invoice-copy bg-white p-6 border border-gray-300 rounded-lg">
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-black mb-2">
-            {brandName} Farms Kitchen Limited
-          </h1>
-          <p className="font-semibold text-black">
-            Address: Jurain Depot ( Frozen Food )
-          </p>
-          <div className="border-2 border-black px-2 py-2 font-bold text-md text-black bg-gray-100 mt-3 w-40 mx-auto">
-            Invoice Details
-          </div>
-        </div>
+    const paisa = Math.round((num % 1) * 100);
+    let paisaWords = '';
+    if (paisa > 0) {
+      if (paisa < 20) {
+        paisaWords = simpleNumbers[paisa];
+      } else {
+        paisaWords = tens[Math.floor(paisa / 10)];
+        if (paisa % 10 > 0) {
+          paisaWords += ' ' + simpleNumbers[paisa % 10];
+        }
+      }
+    }
 
-        <div className="flex justify-between items-start mb-6 text-sm text-black">
-          <div className="space-y-1">
-            <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
-            <p><strong>Partner Name:</strong> {invoice.shop?.shop_name || 'N/A'}</p>
-            <p><strong>Partner Location:</strong> {invoice.shop?.address || 'N/A'}</p>
-            <p><strong>Phone:</strong> {invoice.shop?.phone || 'N/A'}</p>
-          </div>
-          <div className="border border-black px-4 py-2 font-semibold text-xs bg-gray-100">
-            {copyType === "customer" ? "CUSTOMER COPY" : "DISTRIBUTOR COPY"}
-          </div>
-        </div>
-
-        <div className="mb-4">
-          <table className="w-full border border-black text-xs text-center text-black">
-            <thead>
-              <tr >
-                <th className="border border-black text-xs py-2">P-Code</th>
-                <th className="border border-black px-4 py-2 text-xs">Name of Product</th>
-                <th className="border border-black text-xs py-2">MRP</th>
-                <th className="border border-black text-xs py-2">TP</th>
-                <th className="border border-black text-xs py-2">Quantity</th>
-                <th className="border border-black text-xs py-2">Total Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item) => {
-                const tpPrice = parseFloat(item.product.tp_price) || 0;
-                const itemTotal = tpPrice * item.quantity;
-                
-                return (
-                  <tr key={item.id}>
-                    <td className="border border-black text-xs font-semibold py-1">
-                      {item.product.id}
-                    </td>
-                    <td className="border border-black px-2 py-1 text-xs font-semibold">
-                      {item.product.product_name}
-                    </td>
-                    <td className="border border-black px-1 py-1 text-xs font-semibold">
-                      {item.product.mrp_price}
-                    </td>
-                    <td className="border border-black px-1 py-1 text-xs font-semibold">
-                      {item.product.tp_price}
-                    </td>
-                    <td className="border border-black px-1 py-1 text-xs font-semibold">
-                      {item.quantity}
-                    </td>
-                    <td className="border border-black px-1 py-1 text-xs font-semibold">
-                      {itemTotal.toFixed(2)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mt-6">
-          <table className="w-full text-sm">
-            <tbody>
-              <tr>
-                <td className="font-semibold text-xs px-3 py-1 text-black w-2/3">
-                  Total Distributor Price
-                </td>
-                <td className="text-right text-xs px-3 py-1 text-black font-semibold w-1/3">
-                  {totals.subtotal}
-                </td>
-              </tr>
-              <tr>
-                <td className="font-semibold text-xs px-3 py-1 text-black">
-                  Trade Discount %
-                </td>
-                <td className="text-right text-xs px-3 py-1 text-black font-semibold">
-                  {discountPercent}%
-                </td>
-              </tr>
-              <tr>
-                <td className="font-semibold text-xs px-3 py-1 text-black">
-                  Discount Amount
-                </td>
-                <td className="text-right text-xs px-3 py-1 text-black font-semibold">
-                  -{totals.discountAmount}
-                </td>
-              </tr>
-              <tr className="border-t border-black">
-                <td className="font-semibold text-xs px-3 py-2 text-black">
-                  Total Amount
-                </td>
-                <td className="text-right text-xs px-3 py-2 text-black font-bold">
-                  {totals.finalTotal}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="invoice-footer mt-8 flex justify-between">
-          <div className="footer-section">
-            <p className="text-black font-semibold text-xs">Received By</p>
-            <div className="border-t border-black w-20 mx-auto mt-1"></div>
-          </div>
-          <div className="footer-section">
-            <p className="text-black font-semibold text-xs">Authorized By</p>
-            <div className="border-t border-black w-20 mx-auto mt-1"></div>
-          </div>
-        </div>
-      </div>
-    );
+    return words.trim() + (paisa > 0 ? ` and ${paisaWords} Paisa` : '') + ' Tk Only.';
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-lg">Loading invoice...</div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-lg text-red-600">Error: {error}</div>
-      </div>
-    );
-  }
-
-  if (!invoice) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-lg">No invoice found</div>
-      </div>
-    );
-  }
 
   return (
-    <div className="bg-gray-50 min-h-screen p-6">
-      {/* Action Buttons */}
-      <div className="text-center mb-8 no-print">
-        <button
-          onClick={handlePrint}
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 mr-3 shadow-md"
-        >
-          Print Invoice
-        </button>
-      </div>
+    <div className="bg-white min-h-screen p-6 text-[11px] text-black">
+      <div className="max-w-[900px] mx-auto">
 
-      {/* Delivery Status */}
-      <div className="text-center mb-8 no-print">
-        {invoice.is_delivered && (
-          <p className="text-red-600 font-semibold text-lg">
-            This invoice is delivered and expired.
-          </p>
-        )}
-      </div>
+        {/* ================= LOGOS ================= */}
+        <div className="grid grid-cols-3 items-center mb-4">
+          <img src="/logos/bellissimo.png" className="h-14 mx-auto" />
+          <img src="/logos/kazifarms.png" className="h-14 mx-auto" />
+          <img src="/logos/zaabee.png" className="h-14 mx-auto" />
+        </div>
 
-      {/* Previews - Centered horizontally */}
-      <div className="no-print flex justify-center">
-        <div className="flex flex-col lg:flex-row gap-6 justify-center items-start max-w-6xl">
-          <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-full lg:w-[500px]">
-            <div className="border border-gray-200 rounded p-2">
-              <InvoiceCopy copyType="customer" brandName="Kazi" />
-            </div>
+        {/* ================= HEADER INFO ================= */}
+        <table className="w-full border border-black border-collapse">
+          <tbody>
+            <tr>
+              <td className="border px-2 py-[2px] font-medium">Company Name:</td>
+              <td className="border px-2 py-[2px]">Kazi Food Industries Limited</td>
+              <td className="border px-2 py-[2px] text-center font-medium" rowSpan={2}>
+                Order No
+              </td>
+              <td className="border px-2 py-[2px] text-center" rowSpan={2}>
+                {invoice.invoice_number}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="border px-2 py-[2px] font-medium">Territory Name:</td>
+              <td className="border px-2 py-[2px]">
+                Jurain Depot-Narsingdi-Frozen Food
+              </td>
+            </tr>
+
+            <tr>
+              <td className="border px-2 py-[2px] font-medium">Partner Name:</td>
+              <td className="border px-2 py-[2px]">{invoice.shop?.shop_name || 'Nitto Bazar'}</td>
+              <td className="border px-2 py-[2px] font-medium">Order Date:</td>
+              <td className="border px-2 py-[2px]">{date}</td>
+            </tr>
+
+            <tr>
+              <td className="border px-2 py-[2px] font-medium">Partner Location:</td>
+              <td className="border px-2 py-[2px]">{invoice.shop?.address || 'Mahbodhi, Narsingdi'}</td>
+              <td className="border px-2 py-[2px] font-medium">Document Status:</td>
+              <td className="border px-2 py-[2px]">
+                {invoice.is_delivered ? "Complete" : "Pending"}
+              </td>
+            </tr>
+
+            <tr>
+              <td className="border px-2 py-[2px] font-medium">Partner Mobile No:</td>
+              <td className="border px-2 py-[2px]">{invoice.shop?.phone || '01829-054230'}</td>
+              <td className="border px-2 py-[2px] font-medium">Activity:</td>
+              <td className="border px-2 py-[2px]">Frozen</td>
+            </tr>
+
+            <tr>
+              <td className="border px-2 py-[2px] font-medium">Order Date:</td>
+              <td className="border px-2 py-[2px]">{date}</td>
+              <td className="border px-2 py-[2px] font-medium">Document Type:</td>
+              <td className="border px-2 py-[2px]">AR Invoice</td>
+            </tr>
+
+            <tr>
+              <td className="border px-2 py-[2px] font-medium">Description:</td>
+              <td className="border px-2 py-[2px]" colSpan={3}>
+                Frozen Shipment
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* ================= TITLE ================= */}
+        <h2 className="text-center font-bold text-sm my-2">
+          Invoice Details
+        </h2>
+
+        {/* ================= INVOICE TABLE ================= */}
+        <table className="w-full border border-black border-collapse text-center">
+          <thead>
+            <tr className="font-bold">
+              <th className="border py-1">Line No</th>
+              <th className="border py-1">Product Code</th>
+              <th className="border py-1">Product Name</th>
+              <th className="border py-1">Qty</th>
+              <th className="border py-1">Price / Unit</th>
+              <th className="border py-1">Line Total</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {items.map((item, index) => {
+              const tp = Number(item.product.tp_price) || 0;
+              const total = tp * item.quantity;
+
+              return (
+                <tr key={item.id}>
+                  <td className="border py-1">{index + 1}</td>
+                  <td className="border py-1">{item.product.id || '-'}</td>
+                  <td className="border py-1 text-left px-2">
+                    {item.product.product_name}
+                  </td>
+                  <td className="border py-1">{item.quantity}</td>
+                  <td className="border py-1 text-right px-2">
+                    ৳{tp.toFixed(2)}
+                  </td>
+                  <td className="border py-1 text-right px-2 font-semibold">
+                    ৳{total.toFixed(2)}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {/* ================= AMOUNT IN WORD ================= */}
+        <table className="w-full border border-black border-t-0">
+          <tbody>
+            <tr>
+              <td className="px-2 py-1">
+                <strong>Amount In Word (BDT):</strong>{' '}
+                {amountInWords(totalAmount)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* ================= SIGNATURE ================= */}
+        <div className="flex justify-between mt-20 text-sm">
+          <div className="w-1/3 text-center">
+            <div className="border-t border-black pt-1">Authorized By</div>
           </div>
-          <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-4 w-full lg:w-[500px]">
-            <div className="border border-gray-200 rounded p-2">
-              <InvoiceCopy copyType="distributor" brandName="Kazi" />
-            </div>
+          <div className="w-1/3 text-center">
+            <div className="border-t border-black pt-1">Received By</div>
           </div>
         </div>
-      </div>
 
-      {/* Hidden Print Section */}
-      <div ref={invoiceRef} style={{ display: "none" }}>
-        {/* This content will be used for printing */}
       </div>
     </div>
   );
