@@ -33,6 +33,7 @@ export default function HarvestInvoicePage() {
     fetchInvoice();
   }, [id]);
 
+
   const handlePrint = () => {
     if (!invoiceRef.current) return;
     const printWindow = window.open("", "_blank");
@@ -322,9 +323,6 @@ export default function HarvestInvoicePage() {
     return match ? `${match[1]} gm` : "N/A";
   };
 
-  const calculateQuantity = (totalPrice, tpPrice) => {
-    return tpPrice > 0 ? Math.floor(totalPrice / tpPrice) : 0;
-  };
 
   const InvoiceContent = () => {
     if (!invoice) return null;
@@ -403,6 +401,7 @@ export default function HarvestInvoicePage() {
                 <th>Category</th>
                 <th>Name of Product</th>
                 <th>Weight gm</th>
+                <th>Qty</th>
                 <th>TP</th>
                 <th>MRP</th>
                 <th>Quantity</th>
@@ -428,11 +427,8 @@ export default function HarvestInvoicePage() {
                       {extractWeight(item.product.product_name)}
                     </td>
                     <td className="text-center">
-                      {calculateQuantity(
-                        parseFloat(item.total_price) || 0,
-                        item.product.tp_price
-                      )}
-                    </td>
+  {item.product.size}
+</td>
                     <td className="text-center">{item.product.tp_price}</td>
                     <td className="text-center">{item.product.mrp_price}</td>
                     <td className="text-center">{item.quantity}</td>

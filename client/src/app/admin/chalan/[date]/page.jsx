@@ -7,7 +7,7 @@ export default function DailyStockPage() {
   const params = useParams();
   const router = useRouter();
   const date = params.date;
-
+  const [challanNo, setChallanNo] = useState("");
   const [items, setItems] = useState([]);
   const [grandTotal, setGrandTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -27,6 +27,7 @@ export default function DailyStockPage() {
         // Set items and grand total
         setItems(Array.isArray(data.items) ? data.items : []);
         setGrandTotal(data.grand_total_price || 0);
+        setChallanNo(data.challan_no || "");
       } catch (err) {
         setError(err.message);
       } finally {
@@ -81,6 +82,9 @@ export default function DailyStockPage() {
 
       {/* Items table */}
       <div className="overflow-x-auto">
+       <p className="text-lg font-semibold mb-4">
+        Challan No: {challanNo}
+      </p>
         <table className="min-w-full border border-gray-300">
           <thead className="bg-gray-100">
             <tr>

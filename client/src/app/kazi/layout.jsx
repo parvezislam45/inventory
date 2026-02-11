@@ -49,8 +49,6 @@ export default function DashboardLayout({ children }) {
               <span className="font-medium">{link.label}</span>
             </Link>
           ))}
-        </nav>
-        <div className="p-4 border-t border-gray-100">
           <button 
             onClick={logout}
             className="flex items-center gap-2 w-full px-4 py-3 text-sm rounded-lg hover:bg-red-50 hover:text-red-600 transition text-gray-600"
@@ -58,7 +56,7 @@ export default function DashboardLayout({ children }) {
             <LogOut className="w-4 h-4" />
             Logout
           </button>
-        </div>
+        </nav>
       </aside>
 
       {/* Mobile Navbar */}
@@ -77,6 +75,13 @@ export default function DashboardLayout({ children }) {
             <span className="text-xs mt-1 font-medium">{link.label}</span>
           </Link>
         ))}
+        <button 
+            onClick={logout}
+            className="flex items-center gap-2 w-full px-4 py-3 text-sm rounded-lg hover:bg-red-50 hover:text-red-600 transition text-gray-600"
+          >
+            <LogOut className="w-4 h-4" />
+            Logout
+          </button>
       </div>
 
       {/* Main Content */}

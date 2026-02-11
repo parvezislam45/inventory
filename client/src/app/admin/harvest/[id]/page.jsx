@@ -415,7 +415,7 @@ export default function HarvestInvoicePage() {
                 <th>Category</th>
                 <th>Name of Product</th>
                 <th>Weight gm</th>
-                <th>Qty</th>
+                <th>P-Qty</th>
                 <th>TP</th>
                 <th>MRP</th>
                 <th>Quantity</th>
@@ -441,11 +441,8 @@ export default function HarvestInvoicePage() {
                       {extractWeight(item.product.product_name)}
                     </td>
                     <td className="text-center">
-                      {calculateQuantity(
-                        parseFloat(item.total_price) || 0,
-                        item.product.tp_price
-                      )}
-                    </td>
+  {item.product.size}
+</td>
                     <td className="text-center">{item.product.tp_price}</td>
                     <td className="text-center">{item.product.mrp_price}</td>
                     <td className="text-center">{item.quantity}</td>

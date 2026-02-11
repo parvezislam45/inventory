@@ -13,6 +13,7 @@ const AddProductPage = () => {
     mrp_price: "",
     tp_price: "",
     stock: "",
+    size  :'',
     brand: null,
     category: null,
     image: null,
@@ -87,6 +88,7 @@ const AddProductPage = () => {
     data.append("mrp_price", String(formData.mrp_price));
     data.append("tp_price", String(formData.tp_price));
     data.append("stock", String(formData.stock));
+    data.append("size", String(formData.size));
     data.append("category", String(formData.category));
     data.append("brand", String(formData.brand));
     if (formData.image) data.append("image", formData.image);
@@ -307,7 +309,24 @@ const AddProductPage = () => {
                   required
                 />
               </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Packet Size *
+                </label>
+                <input
+                  type="number"
+                  name="size"
+                  placeholder="0"
+                  value={formData.size}
+                  onChange={handleChange}
+                  min="0"
+                  className="block w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-50/50"
+                  required
+                />
+              </div>
             </div>
+
+            
 
             {/* Category & Brand */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

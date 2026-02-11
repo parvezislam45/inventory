@@ -1,7 +1,7 @@
 
 from rest_framework import generics,status
 from .models import Category,Product,Shop,Invoice,Brand,OrderItem,ProductStockHistory
-from .serializers import CategorySerializer,ProductSerializer,ShopSerializer,BrandSerializer,InvoiceSerializer,CreateInvoiceSerializer,UpdateOrderItemSerializer,ProductRestockSerializer,ProductStockHistorySerializer,DailyStockItemSerializer
+from .serializers import CategorySerializer,ProductSerializer,ShopSerializer,BrandSerializer,InvoiceSerializer,CreateInvoiceSerializer,UpdateOrderItemSerializer,ProductRestockSerializer,ProductStockHistorySerializer,DailyStockItemSerializer,BulkRestockItemSerializer,BulkRestockSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.generics import UpdateAPIView,ListAPIView
@@ -9,6 +9,18 @@ from rest_framework.views import APIView
 from django.db.models import Sum, F
 from django.db.models.functions import TruncDate
 from datetime import datetime
+from django.db.models import Max
+from django.db import transaction
+
+
+def generate_challan_no():
+    last_challan = ProductStockHistory.objects.aggregate(
+        max_no=Max('challan_no')
+    )['max_no']
+    
+    if last_challan:
+        return str(int(last_challan) + 1).zfill(6)
+    return "100001"
 
 
 class CategoryListCreateView(generics.ListCreateAPIView):
@@ -32,9 +44,23 @@ class ProductListCreateView(generics.ListCreateAPIView):
     permission_classes = [AllowAny]
     
 class ProductListView(generics.ListAPIView):
-    queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = Product.objects.select_related(
+            "brand",
+            "category"
+        ).all()
+
+        brand_id = self.request.query_params.get("brand")
+
+        print("Brand ID =", brand_id)   # 🔥 DEBUG LINE
+
+        if brand_id:
+            queryset = queryset.filter(brand_id=brand_id)
+
+        return queryset
     
 class ProductRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     queryset = Product.objects.all()
@@ -80,10 +106,73 @@ class ProductRestockView(APIView):
             "total_stock_price": added_stock * product.tp_price
         }, status=status.HTTP_200_OK)
         
+class BulkProductRestockView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = BulkRestockSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        results = []
+
+        with transaction.atomic():
+            for item in serializer.validated_data['items']:
+                product_id = item['product_id']
+                added_stock = item['added_stock']
+
+                product = Product.objects.select_for_update().get(id=product_id)
+
+                last_stock = product.stock
+                current_stock = last_stock + added_stock
+
+                # update product stock
+                product.stock = current_stock
+                product.save()
+
+                # save stock history
+                history = ProductStockHistory.objects.create(
+                    product=product,
+                    brand=product.brand,
+                    last_stock=last_stock,
+                    added_stock=added_stock,
+                    current_stock=current_stock,
+                    tp_price=product.tp_price,
+                    total_stock_price=added_stock * product.tp_price
+                )
+
+                results.append({
+                    "product_id": product.id,
+                    "product_name": product.product_name,
+                    "brand_name": product.brand.brand_name if product.brand else None,
+                    "last_stock": last_stock,
+                    "added_stock": added_stock,
+                    "current_stock": current_stock,
+                    "tp_price": product.tp_price,
+                    "total_stock_price": history.total_stock_price
+                })
+
+        grand_total_price = sum(r['total_stock_price'] for r in results)
+
+        return Response({
+            "message": "Bulk stock updated successfully",
+            "items": results,
+            "grand_total_price": grand_total_price
+        }, status=status.HTTP_200_OK)
+        
 class ProductStockHistoryListView(generics.ListAPIView):
     queryset = ProductStockHistory.objects.select_related('product').all()
     serializer_class = ProductStockHistorySerializer
     permission_classes = [AllowAny]
+    
+class DeleteStockHistoryByDateView(generics.GenericAPIView):
+    permission_classes = [AllowAny]
+
+    def delete(self, request, date, *args, **kwargs):
+        # Delete all records for the given date
+        deleted_count, _ = ProductStockHistory.objects.filter(created_at__date=date).delete()
+        if deleted_count > 0:
+            return Response({"message": f"Deleted {deleted_count} records for {date}"}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "No records found for this date"}, status=status.HTTP_404_NOT_FOUND)
 
 class DailyStockSummaryView(APIView):
     permission_classes = [AllowAny]
@@ -104,9 +193,6 @@ class DailyStockDetailView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, date):
-        """
-        date format: YYYY-MM-DD
-        """
         try:
             parsed_date = datetime.strptime(date, "%Y-%m-%d").date()
         except ValueError:
@@ -116,17 +202,24 @@ class DailyStockDetailView(APIView):
             created_at__date=parsed_date
         ).select_related("product", "brand")
 
+        # ✅ Ensure challan_no exists for all items
+        if queryset.exists() and not queryset.first().challan_no:
+            challan_no = generate_challan_no()
+            queryset.update(challan_no=challan_no)
+        else:
+            challan_no = queryset.first().challan_no if queryset.exists() else generate_challan_no()
+
         serializer = ProductStockHistorySerializer(queryset, many=True)
 
-        grand_total_price = sum(
-            item.total_stock_price for item in queryset
-        )
+        grand_total_price = sum(item.total_stock_price for item in queryset)
 
         return Response({
             "date": date,
-            "items": serializer.data,          # ✅ DATE-WISE ITEMS
+            "challan_no": challan_no,
+            "items": serializer.data,
             "grand_total_price": grand_total_price
         }, status=200)
+
 class ProductStockSummaryView(APIView):
     permission_classes = [AllowAny]
 

@@ -54,7 +54,8 @@ class ProductSerializer(serializers.ModelSerializer):
             'category_name',  
             'brand',          
             'brand_name',     
-            'image'
+            'image',
+            'size'
         ]
         
 class ProductRestockSerializer(serializers.Serializer):
@@ -73,7 +74,7 @@ class ProductStockHistorySerializer(serializers.ModelSerializer):
         fields = [
         'id', 'product', 'product_name', 'brand', 'brand_name',
         'last_stock', 'added_stock', 'current_stock',
-        'tp_price', 'total_stock_price', 'created_at'
+        'tp_price', 'total_stock_price', 'created_at',
         ]
 
 class DailyStockSummarySerializer(serializers.Serializer):
@@ -352,6 +353,25 @@ class UpdateOrderItemSerializer(serializers.ModelSerializer):
         invoice.save()
 
         return instance
+    
+class BulkRestockItemSerializer(serializers.Serializer):
+    product_id = serializers.IntegerField()
+    added_stock = serializers.IntegerField(min_value=1)
+
+    def validate_added_stock(self, value):
+        if value <= 0:
+            raise serializers.ValidationError("Added stock must be greater than 0")
+        return value
+
+
+class BulkRestockSerializer(serializers.Serializer):
+    items = BulkRestockItemSerializer(many=True)
+
+    def validate_items(self, value):
+        if not value:
+            raise serializers.ValidationError("At least one item is required.")
+        return value
+
 
 
 

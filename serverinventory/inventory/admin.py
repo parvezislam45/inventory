@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category,Product,Shop,Order,OrderItem,Invoice,Brand
+from .models import Category,Product,Shop,Order,OrderItem,Invoice,Brand,ProductStockHistory
 class CategoryAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('category_name',)}
     list_display = ('category_name', 'slug')
@@ -20,3 +20,4 @@ admin.site.register(Shop)
 admin.site.register(Order)
 admin.site.register(OrderItem)
 admin.site.register(Invoice)
+admin.site.register(ProductStockHistory)

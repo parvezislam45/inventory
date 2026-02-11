@@ -22,6 +22,7 @@ class Product(models.Model):
     tp_price = models.IntegerField()
     mrp_price = models.IntegerField()
     stock = models.IntegerField()
+    size = models.IntegerField(blank=True, null=True)
     is_available = models.BooleanField(default=True)
     created_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
@@ -39,6 +40,7 @@ class ProductStockHistory(models.Model):
     tp_price = models.IntegerField()
     total_stock_price = models.IntegerField()
     created_at = models.DateTimeField(auto_now_add=True)
+    challan_no = models.CharField(max_length=6, blank=True, null=True) 
 
     def __str__(self):
         return f"{self.product.product_name} - {self.added_stock}"

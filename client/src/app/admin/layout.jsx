@@ -14,6 +14,7 @@ import {
   ShoppingBag,
   Tag,
   Building,
+  ShoppingCart,
 } from "lucide-react";
 
 export default function DashboardLayout({ children }) {
@@ -52,12 +53,17 @@ export default function DashboardLayout({ children }) {
     { 
       href: "/admin/stock", 
       label: "Total Stock", 
-      icon: <Plus className="w-5 h-5" />,
+      icon: <ShoppingCart className="w-5 h-5" />,
       category: "Products"
     },
     { 
       href: "/admin/add", 
       label: "Add Product", 
+      icon: <Plus className="w-5 h-5" />,
+      category: "Products"
+    },
+      {href: "/admin/quantity", 
+      label: "Add Stock", 
       icon: <Plus className="w-5 h-5" />,
       category: "Products"
     },
