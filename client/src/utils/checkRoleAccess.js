@@ -19,7 +19,7 @@ export const useRoleGuard = (allowedRoles) => {
       }
 
       try {
-        const res = await fetch(`http://127.0.0.1:8000/users/${username}/`, {
+        const res = await fetch(`https://server.jobaeralmahamud.com/users/${username}/`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${access}`,

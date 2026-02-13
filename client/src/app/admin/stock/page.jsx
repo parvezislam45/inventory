@@ -7,7 +7,7 @@ const TotalStock = () => {
   const [sortBy, setSortBy] = useState('stock'); // 'stock', 'value', 'name'
 
   useEffect(() => {
-    fetch('http://localhost:8000/products/brand-summary/')
+    fetch('https://server.jobaeralmahamud.com/products/brand-summary/')
       .then(res => res.json())
       .then(result => {
         setData(result);

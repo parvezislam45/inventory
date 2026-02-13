@@ -442,7 +442,7 @@ export default function OrdersPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await fetch("http://127.0.0.1:8000/invoices/");
+      const response = await fetch("https://server.jobaeralmahamud.com/invoices/");
       
       if (!response.ok) {
         throw new Error(`Failed to fetch invoices: ${response.status}`);
@@ -465,7 +465,7 @@ export default function OrdersPage() {
     try {
       setUpdating(true);
       
-      const response = await fetch(`http://127.0.0.1:8000/order-items/${itemId}/update/`, {
+      const response = await fetch(`https://server.jobaeralmahamud.com/order-items/${itemId}/update/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -502,7 +502,7 @@ export default function OrdersPage() {
     try {
       setDeleting(itemId);
       
-      const response = await fetch(`http://127.0.0.1:8000/order-items/${itemId}/remove/`, {
+      const response = await fetch(`https://server.jobaeralmahamud.com/order-items/${itemId}/remove/`, {
         method: "DELETE",
       });
 
@@ -549,7 +549,7 @@ export default function OrdersPage() {
     try {
       setDeletingInvoice(invoiceId);
       
-      const response = await fetch(`http://127.0.0.1:8000/invoices/${invoiceId}/`, {
+      const response = await fetch(`https://server.jobaeralmahamud.com/invoices/${invoiceId}/`, {
         method: "DELETE",
       });
 

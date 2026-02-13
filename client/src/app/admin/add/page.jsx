@@ -24,12 +24,12 @@ const AddProductPage = () => {
 
   // Fetch categories and brands using .then()
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/categories/")
+    fetch("https://server.jobaeralmahamud.com/categories/")
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch((err) => console.error("Failed to fetch categories:", err));
 
-    fetch("http://127.0.0.1:8000/brand/")
+    fetch("https://server.jobaeralmahamud.com/brand/")
       .then((res) => res.json())
       .then((data) => setBrands(data))
       .catch((err) => console.error("Failed to fetch brands:", err));
@@ -93,7 +93,7 @@ const AddProductPage = () => {
     data.append("brand", String(formData.brand));
     if (formData.image) data.append("image", formData.image);
 
-    fetch("http://127.0.0.1:8000/product/", {
+    fetch("https://server.jobaeralmahamud.com/product/", {
       method: "POST",
       body: data,
     })

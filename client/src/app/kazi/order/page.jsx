@@ -17,7 +17,7 @@ export default function OrderPage() {
     const saved = localStorage.getItem('selectedProducts');
     if (saved) setSelectedProducts(JSON.parse(saved));
 
-    fetch('http://127.0.0.1:8000/shops/')
+    fetch('https://server.jobaeralmahamud.com/shops/')
       .then(res => res.json())
       .then((data) => setShops(data));
   }, []);
@@ -57,7 +57,7 @@ export default function OrderPage() {
         })),
       };
 
-      const res = await fetch('http://127.0.0.1:8000/invoice/create/', {
+      const res = await fetch('https://server.jobaeralmahamud.com/invoice/create/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

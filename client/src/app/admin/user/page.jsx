@@ -35,7 +35,7 @@ export default function UserManagement() {
       setLoading(true);
       setError("");
       
-      const response = await fetch("http://127.0.0.1:8000/users/", {
+      const response = await fetch("https://server.jobaeralmahamud.com/users/", {
         headers: getAuthHeaders(),
       });
       
@@ -65,7 +65,7 @@ export default function UserManagement() {
     try {
       setError("");
       const response = await fetch(
-        `http://127.0.0.1:8000/users/${username}/`,
+        `https://server.jobaeralmahamud.com/users/${username}/`,
         {
           method: "PATCH",
           headers: getAuthHeaders(),
@@ -102,7 +102,7 @@ export default function UserManagement() {
     try {
       setError("");
       const response = await fetch(
-        `http://127.0.0.1:8000/users/${userToDelete.username}/`,
+        `https://server.jobaeralmahamud.com/users/${userToDelete.username}/`,
         {
           method: "DELETE",
           headers: getAuthHeaders(),

@@ -52,7 +52,7 @@ export default function StockHistoryPage() {
   useEffect(() => {
     async function fetchStockHistory() {
       try {
-        const response = await fetch("http://localhost:8000/stock-history/");
+        const response = await fetch("https://server.jobaeralmahamud.com/stock-history/");
         if (!response.ok) throw new Error("Failed to fetch stock history");
 
         const data = await response.json();
@@ -132,7 +132,7 @@ export default function StockHistoryPage() {
 // Delete an entire transaction (date challan)
 const handleDeleteDateChallan = async (date) => {
   try {
-    const response = await fetch(`http://localhost:8000/stock-history/${date}/delete/`, {
+    const response = await fetch(`https://server.jobaeralmahamud.com/stock-history/${date}/delete/`, {
       method: 'DELETE',
     });
 
