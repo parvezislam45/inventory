@@ -18,7 +18,7 @@ export default function HarvestProducts() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/product/');
+        const response = await fetch('https://server.jobaeralmahamud.com/product/');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         const harvestProducts = data

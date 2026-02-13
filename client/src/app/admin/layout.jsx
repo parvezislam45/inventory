@@ -32,7 +32,7 @@ export default function DashboardLayout({ children }) {
     }
 
     try {
-      await fetch("http://127.0.0.1:8000/logout/", {
+      await fetch("https://server.jobaeralmahamud.com/logout/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

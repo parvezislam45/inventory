@@ -29,7 +29,7 @@ const ShopManagement = () => {
 
   const fetchShops = async () => {
     try {
-      const res = await fetch('http://127.0.0.1:8000/shops/');
+      const res = await fetch('https://server.jobaeralmahamud.com/shops/');
       if (res.ok) {
         const data = await res.json();
         setShops(data);
@@ -98,8 +98,8 @@ const ShopManagement = () => {
 
     try {
       const url = editingShop
-        ? `http://127.0.0.1:8000/shops/${editingShop.id}/`
-        : 'http://127.0.0.1:8000/shops/';
+        ? `https://server.jobaeralmahamud.com/shops/${editingShop.id}/`
+        : 'https://server.jobaeralmahamud.com/shops/';
       const method = editingShop ? 'PUT' : 'POST';
 
       const res = await fetch(url, {
@@ -137,7 +137,7 @@ const ShopManagement = () => {
 
     setDeleteLoading(id);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/shops/${id}/`, { method: 'DELETE' });
+      const res = await fetch(`https://server.jobaeralmahamud.com/shops/${id}/`, { method: 'DELETE' });
       if (res.ok) {
         showMessage(`🗑️ Shop "${name}" deleted successfully!`, 'success');
         fetchShops();

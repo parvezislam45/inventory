@@ -14,7 +14,7 @@ export default function InvoicePage() {
 
     const fetchInvoice = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/invoices/${id}/`);
+        const res = await fetch(`https://server.jobaeralmahamud.com/invoices/${id}/`);
         if (!res.ok) throw new Error("Failed to fetch invoice");
         const data = await res.json();
 

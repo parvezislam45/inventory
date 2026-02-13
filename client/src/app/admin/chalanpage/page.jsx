@@ -1,6 +1,6 @@
 async function getDailyStock(date) {
   const res = await fetch(
-    `http://localhost:8000/stock/daily/${date}/`,
+    `https://server.jobaeralmahamud.com/stock/daily/${date}/`,
     { cache: "no-store" }
   );
 

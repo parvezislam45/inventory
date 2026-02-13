@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 export default function StockRestockPage() {
-  const API = "http://127.0.0.1:8000";
+  const API = "https://server.jobaeralmahamud.com";
   const router = useRouter();
 
   const [brands, setBrands] = useState([]);

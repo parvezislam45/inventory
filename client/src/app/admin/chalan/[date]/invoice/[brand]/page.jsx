@@ -22,7 +22,7 @@ export default function BrandInvoicePage() {
       
       try {
         // Fetch all items for the date
-        const res = await fetch(`http://localhost:8000/stock/daily/${date}/`);
+        const res = await fetch(`https://server.jobaeralmahamud.com/stock/daily/${date}/`);
         
         if (!res.ok) throw new Error("Failed to fetch invoice data");
         

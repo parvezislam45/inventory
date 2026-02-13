@@ -14,18 +14,18 @@ export default function ProductPage() {
 
   useEffect(() => {
     // fetch products
-    fetch('http://127.0.0.1:8000/product/')
+    fetch('https://server.jobaeralmahamud.com/product/')
       .then((res) => res.json())
       .then((data) => setProducts(data))
       .finally(() => setLoading(false));
 
     // fetch categories
-    fetch('http://127.0.0.1:8000/categories/')
+    fetch('https://server.jobaeralmahamud.com/categories/')
       .then((res) => res.json())
       .then((data) => setCategories(data));
 
     // fetch brands
-    fetch('http://127.0.0.1:8000/brand/')
+    fetch('https://server.jobaeralmahamud.com/brand/')
       .then((res) => res.json())
       .then((data) => setBrands(data));
   }, []);
@@ -47,7 +47,7 @@ export default function ProductPage() {
       brand: selectedProduct.brand,
     };
 
-    const res = await fetch(`http://127.0.0.1:8000/product/${selectedProduct.id}/`, {
+    const res = await fetch(`https://server.jobaeralmahamud.com/product/${selectedProduct.id}/`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ export default function ProductPage() {
     }
 
     try {
-      const res = await fetch(`http://127.0.0.1:8000/product/${productId}/delete/`, {
+      const res = await fetch(`https://server.jobaeralmahamud.com/product/${productId}/delete/`, {
         method: 'DELETE',
       });
 
