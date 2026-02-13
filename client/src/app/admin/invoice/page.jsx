@@ -13,7 +13,7 @@ export default function OrdersPage() {
 
   // Load shops
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/shops/")
+    fetch("https://server.jobaeralmahamud.com/api/shops/")
       .then((res) => res.json())
       .then(setShops)
       .catch((err) => console.error("Error loading shops:", err));
@@ -21,7 +21,7 @@ export default function OrdersPage() {
 
   // Load brands
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/brand/")
+    fetch("https://server.jobaeralmahamud.com/api/brand/")
       .then((res) => res.json())
       .then(setBrands)
       .catch((err) => console.error("Error loading brands:", err));
@@ -34,7 +34,7 @@ export default function OrdersPage() {
       return;
     }
 
-    fetch(`http://127.0.0.1:8000/api/shops/${selectedShop}/invoices/`)
+    fetch(`https://server.jobaeralmahamud.com/api/shops/${selectedShop}/invoices/`)
       .then((res) => res.json())
       .then(setOrders)
       .catch((err) => console.error("Error loading invoices:", err));
@@ -42,7 +42,7 @@ export default function OrdersPage() {
 
   // Fetch single invoice
   const fetchInvoice = (id) => {
-    fetch(`http://127.0.0.1:8000/api/invoices/${id}/`)
+    fetch(`https://server.jobaeralmahamud.com/api/invoices/${id}/`)
       .then((res) => res.json())
       .then((data) => {
         setSelectedInvoice(data);

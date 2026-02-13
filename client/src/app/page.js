@@ -21,7 +21,7 @@ export default function LoginPage() {
       if (!access || !username) return;
 
       try {
-        const res = await fetch(`http://127.0.0.1:8000/users/${username}/`, {
+        const res = await fetch(`https://server.jobaeralmahamud.com/users/${username}/`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${access}`,
@@ -32,7 +32,7 @@ export default function LoginPage() {
           const roleData = await res.json();
           redirectToDashboard(roleData.role);
         } else if (refresh) {
-          const refreshRes = await fetch("http://127.0.0.1:8000/api/token/refresh/", {
+          const refreshRes = await fetch("https://server.jobaeralmahamud.com/api/token/refresh/", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ refresh }),
@@ -42,7 +42,7 @@ export default function LoginPage() {
             const refreshData = await refreshRes.json();
             localStorage.setItem("accessToken", refreshData.access);
 
-            const retryRes = await fetch(`http://127.0.0.1:8000/users/${username}/`, {
+            const retryRes = await fetch(`https://server.jobaeralmahamud.com/users/${username}/`, {
               headers: {
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${refreshData.access}`,
@@ -76,7 +76,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/login/", {
+      const res = await fetch("https://server.jobaeralmahamud.com/login/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -89,7 +89,7 @@ export default function LoginPage() {
         localStorage.setItem("refreshToken", data.refresh);
         localStorage.setItem("username", data.username);
 
-        const roleRes = await fetch(`http://127.0.0.1:8000/users/${data.username}/`, {
+        const roleRes = await fetch(`https://server.jobaeralmahamud.com/users/${data.username}/`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${data.access}`,

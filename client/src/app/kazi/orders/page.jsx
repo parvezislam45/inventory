@@ -12,7 +12,7 @@ export default function OrdersPage() {
 
   useEffect(() => {
     // Load shops only on mount
-    fetch('http://127.0.0.1:8000/shops/')
+    fetch('https://server.jobaeralmahamud.com/shops/')
       .then(res => res.json())
       .then(setShops);
   }, []);
@@ -23,7 +23,7 @@ export default function OrdersPage() {
 
     try {
       if (shopId) {
-        const res = await fetch(`http://127.0.0.1:8000/shops/${shopId}/invoices/`);
+        const res = await fetch(`https://server.jobaeralmahamud.com/shops/${shopId}/invoices/`);
         if (!res.ok) {
           throw new Error('Failed to fetch orders');
         }

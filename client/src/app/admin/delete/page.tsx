@@ -13,7 +13,7 @@ export default function DeliveredInvoicesPage() {
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://127.0.0.1:8000/invoices/delivered/");
+      const res = await axios.get("https://server.jobaeralmahamud.com/invoices/delivered/");
       setInvoices(res.data);
       setLoading(false);
     } catch (err) {
@@ -33,7 +33,7 @@ export default function DeliveredInvoicesPage() {
 
     try {
       setDeleting(id);
-      await axios.delete(`http://127.0.0.1:8000/invoices/delivered/${id}/`);
+      await axios.delete(`https://server.jobaeralmahamud.com/invoices/delivered/${id}/`);
       setInvoices(invoices.filter((inv) => inv.id !== id));
       setDeleting(null);
     } catch (err) {
