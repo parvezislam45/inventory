@@ -2,11 +2,11 @@
   "name": "inventory",
   "version": "0.1.0",
   "private": true,
-  "homepage":"http://mollahmart.top",
+  "homepage": "http://mollahmart.top",
   "scripts": {
-    "dev": "node server.js",
-    "build": "next build",
-    "start": "NODE_ENV=production node server.js",
+    "dev": "node init && node server.js",
+    "build": "node init && next build",
+    "start": "node init && NODE_ENV=production node server.js",
     "lint": "eslint"
   },
   "dependencies": {

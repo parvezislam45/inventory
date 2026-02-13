@@ -12,7 +12,7 @@ export default function BrandManagementPage() {
   const [error, setError] = useState(null);
   const [editId, setEditId] = useState(null);
 
-  const baseURL = "http://127.0.0.1:8000/brand/";
+  const baseURL = "https://server.jobaeralmahamud.com/brand/";
 
   // ✅ Fetch brands
   const fetchBrands = async () => {

@@ -2,7 +2,7 @@
 const axios = require("axios");
 
 const Api = axios.create({
-  baseURL: "http://127.0.0.1:8000/",
+  baseURL: "https://server.jobaeralmahamud.com/",
   headers: {
     "Content-Type": "application/json",
   },
@@ -10,4 +10,4 @@ const Api = axios.create({
 
 module.exports = Api;
 
-// http://127.0.0.1:8000/
+// https://server.jobaeralmahamud.com/
