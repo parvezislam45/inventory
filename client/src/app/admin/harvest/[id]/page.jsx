@@ -18,7 +18,7 @@ export default function HarvestInvoicePage() {
     const fetchInvoice = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://127.0.0.1:8000/invoices/${id}/`);
+        const response = await fetch(`https://server.jobaeralmahamud.com/invoices/${id}/`);
         if (!response.ok) throw new Error(`Failed to fetch invoice`);
         const data = await response.json();
         console.log("Fetched invoice:", data);
@@ -36,7 +36,7 @@ export default function HarvestInvoicePage() {
   const markDelivered = async () => {
     if (!invoice) return;
     const res = await fetch(
-      `http://127.0.0.1:8000/invoices/${invoice.id}/deliver/`,
+      `https://server.jobaeralmahamud.com/invoices/${invoice.id}/deliver/`,
       { method: "POST", headers: { "Content-Type": "application/json" } }
     );
     if (res.ok) {

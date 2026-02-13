@@ -25,7 +25,7 @@ export default function InvoiceDetailsPage() {
   const fetchInvoice = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`http://127.0.0.1:8000/invoices/${invoiceId}/`);
+      const response = await fetch(`https://server.jobaeralmahamud.com/invoices/${invoiceId}/`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch invoice");
@@ -75,7 +75,7 @@ export default function InvoiceDetailsPage() {
   const handleUpdateItem = async (itemId, quantity) => {
     try {
       setUpdating(true);
-      const response = await fetch(`http://127.0.0.1:8000/order-items/${itemId}/update/`, {
+      const response = await fetch(`https://server.jobaeralmahamud.com/order-items/${itemId}/update/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -100,7 +100,7 @@ export default function InvoiceDetailsPage() {
     if (!confirm("Are you sure you want to remove this item?")) return;
     try {
       setDeleting(itemId);
-      const response = await fetch(`http://127.0.0.1:8000/order-items/${itemId}/remove/`, {
+      const response = await fetch(`https://server.jobaeralmahamud.com/order-items/${itemId}/remove/`, {
         method: "DELETE",
       });
       if (!response.ok) {

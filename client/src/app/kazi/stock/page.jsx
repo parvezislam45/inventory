@@ -7,7 +7,7 @@ const KaziStock = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch('http://localhost:8000/products/brand-summary/')
+    fetch('https://server.jobaeralmahamud.com/products/brand-summary/')
       .then(res => res.json())
       .then(result => {
         // Find Harvest brand specifically
